@@ -1,22 +1,29 @@
+# Custom environment for Stock prediction.
+# Author: @THEFFTKID.
+
 from time import time
 from enum import Enum
-import numpy as np
-import matplotlib.pyplot as plt
 
+import numpy as np
 import gymnasium as gym
+import matplotlib.pyplot as plt
 
 
 class Actions(Enum):
-    go_down = 0
-    go_up = 1
+    """
+    Discrete set of actions for the agent (stock/index).
+    """
+    up_movement = 1
+    no_movement = 0
+    down_movement = -1
 
+# TODO: Delete this shit.
+# class Positions(Enum):
+#     Short = 0
+#     Long = 1
 
-class Positions(Enum):
-    Short = 0
-    Long = 1
-
-    def opposite(self):
-        return Positions.Short if self == Positions.Long else Positions.Long
+#     def opposite(self):
+#         return Positions.Short if self == Positions.Long else Positions.Long
 
 
 class TradingEnv(gym.Env):
@@ -34,14 +41,14 @@ class TradingEnv(gym.Env):
         self.prices, self.signal_features = self._process_data()
         self.shape = (window_size, self.signal_features.shape[1])
 
-        # spaces
+        # Action space.
         self.action_space = gym.spaces.Discrete(len(Actions))
         INF = 1e10
         self.observation_space = gym.spaces.Box(
             low=-INF, high=INF, shape=self.shape, dtype=np.float32,
         )
 
-        # episode
+        # Episode
         self._start_tick = self.window_size
         self._end_tick = len(self.prices) - 1
         self._truncated = None
@@ -54,6 +61,9 @@ class TradingEnv(gym.Env):
         self._first_rendering = None
         self.history = None
 
+        # Ad hoc needs.
+        self._actions_history = None
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed, options=options)
         self.action_space.seed(int((self.np_random.uniform(0, seed if seed is not None else 1))))
@@ -61,12 +71,13 @@ class TradingEnv(gym.Env):
         self._truncated = False
         self._current_tick = self._start_tick
         self._last_trade_tick = self._current_tick - 1
-        self._position = Positions.Short
+        # self._position = Positions.Short
         self._position_history = (self.window_size * [None]) + [self._position]
         self._total_reward = 0.
         self._total_profit = 1.  # unit
         self._first_rendering = True
         self.history = {}
+        self._actions_history = []
 
         observation = self._get_observation()
         info = self._get_info()
@@ -77,35 +88,42 @@ class TradingEnv(gym.Env):
         return observation, info
 
     def step(self, action):
+        # Add action.
+        self._actions_history.append(action)
+
         self._truncated = False
         self._current_tick += 1
 
         if self._current_tick == self._end_tick:
+            print('Entré')
             self._truncated = True
 
+        # Calculate instant reward.
         step_reward = self._calculate_reward(action)
+        # Update the total reward using the current reward.
         self._total_reward += step_reward
 
-        self._update_profit(action)
+        # self._update_profit(action)
 
-        trade = False
-        if (
-            (action == Actions.go_up.value and self._position == Positions.Short) or
-            (action == Actions.go_down.value and self._position == Positions.Long)
-        ):
-            trade = True
+        # trade = False
+        # if (
+        #     (action == Actions.up_movement.value and self._position == Positions.Short) or
+        #     (action == Actions.down_movement.value and self._position == Positions.Long)
+        # ):
+        #     trade = True
 
-        if trade:
-            self._position = self._position.opposite()
-            self._last_trade_tick = self._current_tick
+        # if trade:
+        #     self._position = self._position.opposite()
+        #     self._last_trade_tick = self._current_tick
 
-        self._position_history.append(self._position)
+        # self._position_history.append(self._position)
         observation = self._get_observation()
         info = self._get_info()
         self._update_history(info)
 
         if self.render_mode == 'human':
             self._render_frame()
+        
 
         return observation, step_reward, False, self._truncated, info
 
@@ -113,7 +131,7 @@ class TradingEnv(gym.Env):
         return dict(
             total_reward=self._total_reward,
             total_profit=self._total_profit,
-            position=self._position
+            # position=self._position
         )
 
     def _get_observation(self):
@@ -132,13 +150,14 @@ class TradingEnv(gym.Env):
     def render(self, mode='human'):
 
         def _plot_position(position, tick):
-            color = None
-            if position == Positions.Short:
-                color = 'red'
-            elif position == Positions.Long:
-                color = 'green'
-            if color:
-                plt.scatter(tick, self.prices[tick], color=color)
+            pass
+            # color = None
+            # if position == Positions.Short:
+            #     color = 'red'
+            # elif position == Positions.Long:
+            #     color = 'green'
+            # if color:
+            #     plt.scatter(tick, self.prices[tick], color=color)
 
         start_time = time()
 
@@ -165,26 +184,35 @@ class TradingEnv(gym.Env):
         plt.pause(pause_time)
 
     def render_all(self, title=None):
-        window_ticks = np.arange(len(self._position_history))
+        window_ticks = np.arange(len(self._actions_history))
         plt.plot(self.prices)
 
-        short_ticks = []
-        long_ticks = []
+        up_ticks = []
+        no_ticks = []
+        down_ticks = []
+    
         for i, tick in enumerate(window_ticks):
-            if self._position_history[i] == Positions.Short:
-                short_ticks.append(tick)
-            elif self._position_history[i] == Positions.Long:
-                long_ticks.append(tick)
+            
+            print(Actions.up_movement.value, self._actions_history[i])
+            
+            if self._actions_history[i] == Actions.up_movement.value:
+                up_ticks.append(tick)
+            elif self._actions_history[i] == Actions.no_movement.value:
+                no_ticks.append(tick)
+            elif self._actions_history[i] == Actions.down_movement.value:
+                down_ticks.append(tick)
 
-        plt.plot(short_ticks, self.prices[short_ticks], 'ro')
-        plt.plot(long_ticks, self.prices[long_ticks], 'go')
+        plt.plot(up_ticks, self.prices[up_ticks], 'ro')
+        plt.plot(no_ticks, self.prices[no_ticks], 'go')
+        # plt.plot(down_ticks, self.prices[down_ticks], 'bo')
 
         if title:
             plt.title(title)
 
         plt.suptitle(
-            "Total Reward: %.6f" % self._total_reward + ' ~ ' +
-            "Total Profit: %.6f" % self._total_profit
+            "Total Reward: %.6f" % self._total_reward
+            # + ' ~ ' +
+            # "Total Profit: %.6f" % self._total_profit
         )
 
     def close(self):
@@ -198,6 +226,7 @@ class TradingEnv(gym.Env):
 
     def _process_data(self) -> np.array:
         """
+        Create the features to use.
         """
         prices = self.df.loc[:, 'Close'].to_numpy()
 
@@ -208,21 +237,51 @@ class TradingEnv(gym.Env):
         return prices, signal_features
 
     def _calculate_reward(self, action):
+        """
+        Ad Hoc reward function for index/stock.
+        """
+        # All steps starts with a base reward of 0.
         step_reward = 0
 
+        # Current price.
         current_price = self.prices[self._current_tick]
-        last_trade_price = self.prices[self._last_trade_tick]
+
+        # Last prices
+        # last_trade_price = self.prices[self._last_trade_tick]
+        last_trade_price = self.prices[self._current_tick - 1]
+
+        print(current_price, last_trade_price)
+        
+        # TD(0) difference.
         price_diff = current_price - last_trade_price
 
-        if (
-            (price_diff > 0 and action == Actions.go_up.value) or 
-            (price_diff < 0  and action == Actions.go_down.value)
-        ):
-            step_reward += 1
+        # Relative change in price since the previous time step.
+        relative_change =  100 * (price_diff / last_trade_price)
 
-        return step_reward
+        print(relative_change)
+        # TODO: Propose new threshold based on data.
+        # TODO: Check if log_{10} or ln.
+        # step_reward = np.log((current_price / last_trade_price))
+        # TODO: Implement Sharpe ratio.
+        if (
+            action == Actions.up_movement.value and relative_change >= 0.1
+        ):
+            step_reward = price_diff
+        elif (
+            action == Actions.down_movement.value and relative_change <= -0.1
+        ):
+            step_reward = price_diff
+        elif (
+            action == Actions.no_movement and abs(relative_change) < 0.1
+        ):
+            step_reward = price_diff
+
+        return abs(step_reward)
 
     def _update_profit(self, action):
+        """
+        Apparently we do no need profit.
+        """
         current_price = self.prices[self._current_tick]
         last_trade_price = self.prices[self._last_trade_tick]
         price_diff = current_price - last_trade_price
