@@ -6,6 +6,7 @@ from sklearn.metrics import (
     classification_report,
     confusion_matrix
 )
+import dynamic_threshold
 
 def data_splitter(
     raw_data: pd.DataFrame,
@@ -63,7 +64,7 @@ def create_labels(
     """
     Create the labels based on a given pd.Series.
     """
-    
+
     # Limit for bins.
     # Relative differences.
     relative_diff = x.pct_change(periods=1).fillna(value=0)
@@ -71,7 +72,7 @@ def create_labels(
     # Percentual.
     perc_relative_diff = relative_diff * 100
     # Cut labels.
-    threshold_up, threshold_low = define_threshold(
+    threshold_up, threshold_low = dynamic_threshold.define_threshold(
         df = perc_relative_diff,
         lower_bound = perc_bounds[0],
         upper_bound = perc_bounds[1],
