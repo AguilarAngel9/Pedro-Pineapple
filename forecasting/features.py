@@ -66,7 +66,7 @@ def define_threshold(
     df:pd.Series,
     lower_bound: float,
     upper_bound: float,
-    override_plot = False        
+    override_plot: bool = False        
 )-> tuple:
     
     '''
@@ -91,10 +91,10 @@ def define_threshold(
 
     dof, loc, scale = t.fit(df)
 
-    if override_plot == True:
+    if override_plot:
         plot_tdist(dof,loc,scale,df)
 
     threshold_upper = t.ppf(upper_bound, dof, loc, scale)
     threshold_lower = t.ppf(lower_bound, dof, loc, scale)
 
-    return (threshold_upper, threshold_lower)
+    return threshold_upper, threshold_lower
