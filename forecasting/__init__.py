@@ -14,14 +14,18 @@ from .evaluation import (
     data_splitter,
     evaluation_metrics
 )
+from .utils import (
+    flatten_dict
+)
 
 # Keep alphabetical order.
 __all__ = [
     # Functions.
-    "create_labels"
+    "create_labels",
     "define_threshold",
     "data_splitter",
-    "evaluation_metrics"
+    "evaluation_metrics",
+    "flatten_dict",
     "momentum",
     "n_rolling_mean",
     "weighted_n_moving_avg",
