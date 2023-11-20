@@ -90,9 +90,9 @@ def define_threshold(
     '''
 
     dof, loc, scale = t.fit(df)
-    
+
     if override_plot:
-        plot_tdist(dof,loc,scale,df)
+        plot_tdist(dof, loc, scale, df)
 
     threshold_upper = t.ppf(upper_bound, dof, loc, scale)
     threshold_lower = t.ppf(lower_bound, dof, loc, scale)
