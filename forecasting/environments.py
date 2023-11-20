@@ -15,9 +15,9 @@ class Actions(Enum):
     """
     Discrete set of actions for the agent (stock/index).
     """
-    up_movement = 1
-    no_movement = 0
-    down_movement = -1
+    down_movement = 0
+    no_movement = 1
+    up_movement = 2
 
 
 class Forecasting(gym.Env):
@@ -208,6 +208,8 @@ class Forecasting(gym.Env):
         """
         # Deep copy of data.
         data = self.df.copy(deep=True)
+
+        data.reset_index(inplace=True, drop=True)
 
         # Standardize columns.
         data.columns = list(map(str.lower, data.columns))
