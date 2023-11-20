@@ -44,7 +44,7 @@ class Forecasting(gym.Env):
         # Action space.
 
         # Finite set of actions A = {1, ..., n}.
-        self.action_space = gym.spaces.Discrete(n=len(Actions), start=-1)
+        self.action_space = gym.spaces.Discrete(n=len(Actions), start=0)
         INF = 1e10
         # Space for continous vectors R^{n}.
         self.observation_space = gym.spaces.Box(
@@ -175,18 +175,23 @@ class Forecasting(gym.Env):
         no_ticks = []
         down_ticks = []
 
-        for i, tick in enumerate(window_ticks):
-
-            if self.actions_history[i] == Actions.up_movement.value:
+        for tick in window_ticks:
+            if self.actions_history[tick] == Actions.up_movement.value:
                 up_ticks.append(tick)
-            elif self.actions_history[i] == Actions.no_movement.value:
+            elif self.actions_history[tick] == Actions.no_movement.value:
                 no_ticks.append(tick)
-            elif self.actions_history[i] == Actions.down_movement.value:
+            elif self.actions_history[tick] == Actions.down_movement.value:
                 down_ticks.append(tick)
 
-        plt.plot(up_ticks, self.prices[up_ticks], 'g^')
-        plt.plot(no_ticks, self.prices[no_ticks], 'rv')
-        plt.plot(down_ticks, self.prices[down_ticks], 'y*')
+        plt.plot(
+            up_ticks, self.prices[up_ticks], 'g^'
+        )
+        plt.plot(
+            down_ticks, self.prices[down_ticks], 'rv'
+        )
+        plt.plot(
+            no_ticks, self.prices[no_ticks], 'y>'
+        )
 
         if title:
             plt.title(title)
