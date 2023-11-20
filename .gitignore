@@ -8,3 +8,6 @@ venvpp
 
 # Documents
 requirements_cami.txt
+
+# Directories.
+mlruns
