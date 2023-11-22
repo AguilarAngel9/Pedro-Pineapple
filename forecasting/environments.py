@@ -1,11 +1,12 @@
 # Environment for Stock or Index prediction.
-# Author: @THEFFTKID.
+# Authors: @THEFFTKID, @camila-cusi.
 
 from enum import Enum
 from typing import Union, Tuple, Dict, Any, Literal
 
 import matplotlib.pyplot as plt
 import gymnasium as gym
+from dynamic_threshold import define_threshold
 import features as ft
 import pandas as pd
 import numpy as np
@@ -38,7 +39,9 @@ class Forecasting(gym.Env):
             'momentum',
             'close'
             'nday_tendency_removal'
-            ]]
+            ]],
+            low_threshold: float,
+            up_threshold: float
     ) -> None:
         assert df.ndim == 2
 
@@ -56,8 +59,8 @@ class Forecasting(gym.Env):
         # Calculate and rewrite None.
         self.up_threshold, self.low_threshold = define_threshold(
             df=df['perc_relative_diff'],
-            lower_bound=lower_threshold,
-            upper_bound=upper_threshold
+            lower_bound= low_threshold,
+            upper_bound= up_threshold
         )
 
         # Action space.
