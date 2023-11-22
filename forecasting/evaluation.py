@@ -12,7 +12,7 @@ from sklearn.metrics import (
 
 def data_splitter(
     raw_data: pd.DataFrame,
-    proportion: int = 0.7,
+    proportion: float = 0.7,
     init: Union[int, Tuple[int, int]] = None,
     end: Union[int, Tuple[int, int]] = None
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:

@@ -259,7 +259,7 @@ class Forecasting(gym.Env):
                 'n10_rolling_mean',
                 'n10_weighted_rolling_mean',
                 'momentum',
-                'close'
+                'close',
                 'nday_tendency_removal'
             ]
         ].to_numpy()
