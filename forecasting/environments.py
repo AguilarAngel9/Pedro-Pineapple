@@ -271,10 +271,18 @@ class Forecasting(gym.Env):
             df_volume = data['volume']
         )
         # Williams R%
-        data['williams_p_range'], data['n_highest_high'], data['n_lowest_low'] = ft.williams_range(data=data)
+        data['williams_p_range'], data['n_highest_high'], data['n_lowest_low'] = ft.williams_range(
+            high=data['high'],
+            low=data['low'],
+            close=data['close']
+        )
 
         #Stochastic oscillator
-        data['stochastic_oscillator'] = ft.stochastic_oscillator(data=data)
+        data['stochastic_oscillator'] = ft.stochastic_oscillator(
+            close=data['close'],
+            n_lowest_low=data['n_lowest_low'],
+            n_highest_high=data['n_highest_high']
+        )
 
         features = data[self.features_list].to_numpy()
 
