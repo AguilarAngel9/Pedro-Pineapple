@@ -38,8 +38,9 @@ class Forecasting(gym.Env):
             'n10_rolling_mean',
             'n10_weighted_rolling_mean',
             'momentum',
-            'close'
-            'nday_tendency_removal'
+            'close',
+            'nday_tendency_removal',
+            'williams_p_range'
             ]],
             low_threshold: float,
             up_threshold: float
@@ -269,7 +270,7 @@ class Forecasting(gym.Env):
             df_volume = data['volume']
         )
         # Williams R%
-
+        data['williams_p_range'] = ft.williams_range(data=data)
 
         features = data[self.features_list].to_numpy()
 
