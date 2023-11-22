@@ -33,20 +33,20 @@ class Forecasting(gym.Env):
         window_size: int,
         series_features: List[
             Literal[
-                'open',
-                'high',
-                'low',
-                'volume_roc',
-                'n10_rolling_mean',
-                'n10_weighted_rolling_mean',
-                'momentum',
-                'close',
-                'nday_tendency_removal',
-            'williams_p_range'
-            ]
-        ],
-        lower_threshold: float,
-        upper_threshold: float
+            'open',
+            'high',
+            'low',
+            'volume_roc',
+            'n10_rolling_mean',
+            'n10_weighted_rolling_mean',
+            'momentum',
+            'close',
+            'nday_tendency_removal',
+            'williams_p_range',
+            'stochastic_oscillator'
+            ]],
+            lower_threshold: float,
+            upper_threshold: float
     ) -> None:
         assert df.ndim == 2
 
@@ -275,7 +275,18 @@ class Forecasting(gym.Env):
             df_volume=data['volume']
         )
         # Williams R%
-        data['williams_p_range'] = ft.williams_range(data=data)
+        data['williams_p_range'], data['n_highest_high'], data['n_lowest_low'] = ft.williams_range(
+            high=data['high'],
+            low=data['low'],
+            close=data['close']
+        )
+
+        #Stochastic oscillator
+        data['stochastic_oscillator'] = ft.stochastic_oscillator(
+            close=data['close'],
+            n_lowest_low=data['n_lowest_low'],
+            n_highest_high=data['n_highest_high']
+        )
 
         # Select a subset of features.
         features = data[self.series_features].to_numpy()
