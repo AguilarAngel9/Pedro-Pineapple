@@ -1,12 +1,12 @@
 # Environment for Stock or Index prediction.
-# Author: @THEFFTKID.
+# Authors: @THEFFTKID, @camila-cusi.
 
 from enum import Enum
-from typing import Union, Tuple, Dict, Any
-from dynamic_threshold import define_threshold
+from typing import Union, Tuple, Dict, Any, Literal
 
 import matplotlib.pyplot as plt
 import gymnasium as gym
+from dynamic_threshold import define_threshold
 import features as ft
 import pandas as pd
 import numpy as np
@@ -30,8 +30,20 @@ class Forecasting(gym.Env):
         self,
         df: pd.DataFrame,
         window_size: int,
-        lower_threshold: float,
-        upper_threshold: float
+        features_list: list[Literal[
+            'open',
+            'high',
+            'low',
+            'volume_roc',
+            'n10_rolling_mean',
+            'n10_weighted_rolling_mean',
+            'momentum',
+            'close',
+            'nday_tendency_removal',
+            'williams_p_range'
+            ]],
+            low_threshold: float,
+            up_threshold: float
     ) -> None:
         assert df.ndim == 2
 
@@ -39,7 +51,9 @@ class Forecasting(gym.Env):
         self.df = df
         # Size of the horizon.
         self.window_size = window_size
+
         # Features (phi).
+        self.features_list = features_list
         self.prices, self.signal_features = self._process_data()
         # Shape of the observation space
         self.shape = (window_size, self.signal_features.shape[1])
@@ -47,8 +61,8 @@ class Forecasting(gym.Env):
         # Calculate and rewrite None.
         self.up_threshold, self.low_threshold = define_threshold(
             df=df['perc_relative_diff'],
-            lower_bound=lower_threshold,
-            upper_bound=upper_threshold
+            lower_bound= low_threshold,
+            upper_bound= up_threshold
         )
 
         # Action space.
@@ -77,6 +91,7 @@ class Forecasting(gym.Env):
         self.history = None
         # Trajectory of actions.
         self.actions_history = None
+        
 
     def reset(
         self,
@@ -246,23 +261,18 @@ class Forecasting(gym.Env):
         # Momentum.
         data['momentum'] = ft.momentum(x_=data['close'], n=10)
 
-        # Removal of tendency
+        # Removal of tendency to closing price
         data['nday_tendency_removal'] = ft.tendency_removal(
             df_close=data['close'], n=10
         )
+        # Volume rate of change
+        data['volume_roc'] = ft.volume_perc_rate_of_change(
+            df_volume = data['volume']
+        )
+        # Williams R%
+        data['williams_p_range'] = ft.williams_range(data=data)
 
-        features = data[
-            [
-                'open',
-                'high',
-                'low',
-                'n10_rolling_mean',
-                'n10_weighted_rolling_mean',
-                'momentum',
-                'close',
-                'nday_tendency_removal'
-            ]
-        ].to_numpy()
+        features = data[self.features_list].to_numpy()
 
         prices = data['close'].to_numpy()
 
