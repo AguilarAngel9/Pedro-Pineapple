@@ -2,7 +2,7 @@
 # Author: @THEFFTKID.
 
 from enum import Enum
-from typing import Union, Tuple, Dict, Any
+from typing import Union, Tuple, Dict, Any, Literal
 
 import matplotlib.pyplot as plt
 import gymnasium as gym
@@ -28,7 +28,17 @@ class Forecasting(gym.Env):
     def __init__(
         self,
         df: pd.DataFrame,
-        window_size: int
+        window_size: int,
+        features_list: list[Literal[
+            'open',
+            'high',
+            'low',
+            'n10_rolling_mean',
+            'n10_weighted_rolling_mean',
+            'momentum',
+            'close'
+            'nday_tendency_removal'
+            ]]
     ) -> None:
         assert df.ndim == 2
 
@@ -36,7 +46,9 @@ class Forecasting(gym.Env):
         self.df = df
         # Size of the horizon.
         self.window_size = window_size
+
         # Features (phi).
+        self.features_list = features_list
         self.prices, self.signal_features = self._process_data()
         # Shape of the observation space
         self.shape = (window_size, self.signal_features.shape[1])
@@ -67,6 +79,7 @@ class Forecasting(gym.Env):
         self.history = None
         # Trajectory of actions.
         self.actions_history = None
+        
 
     def reset(
         self,
@@ -234,16 +247,17 @@ class Forecasting(gym.Env):
         data['nday_tendency_removal'] = ft.tendency_removal(df_close = data['close'], n = 10)
 
         features = data[
-            [
-                'open',
-                'high',
-                'low',
-                'n10_rolling_mean',
-                'n10_weighted_rolling_mean',
-                'momentum',
-                'close'
-                'nday_tendency_removal'
-            ]
+            self.features_list
+            # [
+            #     'open',
+            #     'high',
+            #     'low',
+            #     'n10_rolling_mean',
+            #     'n10_weighted_rolling_mean',
+            #     'momentum',
+            #     'close'
+            #     'nday_tendency_removal'
+            # ]
         ].to_numpy()
 
         prices = data['close'].to_numpy()
