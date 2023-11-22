@@ -3,6 +3,7 @@
 
 from enum import Enum
 from typing import Union, Tuple, Dict, Any
+from dynamic_threshold import define_threshold
 
 import matplotlib.pyplot as plt
 import gymnasium as gym
@@ -28,7 +29,9 @@ class Forecasting(gym.Env):
     def __init__(
         self,
         df: pd.DataFrame,
-        window_size: int
+        window_size: int,
+        lower_threshold: float,
+        upper_threshold: float
     ) -> None:
         assert df.ndim == 2
 
@@ -40,6 +43,13 @@ class Forecasting(gym.Env):
         self.prices, self.signal_features = self._process_data()
         # Shape of the observation space
         self.shape = (window_size, self.signal_features.shape[1])
+
+        # Calculate and rewrite None.
+        self.up_threshold, self.low_threshold = define_threshold(
+            df=df['perc_relative_diff'],
+            lower_bound=lower_threshold,
+            upper_bound=upper_threshold
+        )
 
         # Action space.
 
@@ -70,6 +80,8 @@ class Forecasting(gym.Env):
 
     def reset(
         self,
+        lower_threshold: float = None,
+        upper_threshold: float = None,
         seed: Union[int, None] = None,
         options: Union[Dict[str, Any], None] = None
     ) -> Tuple[Any, Union[Dict[str, Any], None]]:
@@ -83,6 +95,10 @@ class Forecasting(gym.Env):
         self.action_space.seed(
             int((self.np_random.uniform(0, seed if seed is not None else 1)))
         )
+        # Assign a specific threshold
+        if all([lower_threshold, upper_threshold]):
+            self.low_threshold = lower_threshold
+            self.up_threshold = upper_threshold
 
         # Reset truncated flag.
         self._truncated = False
@@ -231,7 +247,9 @@ class Forecasting(gym.Env):
         data['momentum'] = ft.momentum(x_=data['close'], n=10)
 
         # Removal of tendency
-        data['nday_tendency_removal'] = ft.tendency_removal(df_close = data['close'], n = 10)
+        data['nday_tendency_removal'] = ft.tendency_removal(
+            df_close=data['close'], n=10
+        )
 
         features = data[
             [
@@ -276,15 +294,20 @@ class Forecasting(gym.Env):
         relative_change = 100 * (price_diff / last_trade_price)
 
         if (
-            action == Actions.up_movement.value and relative_change >= 0.1
+            action == Actions.up_movement.value
+            and relative_change >= self.up_threshold
         ):
             step_reward = price_diff
         elif (
-            action == Actions.down_movement.value and relative_change <= -0.1
+            action == Actions.down_movement.value
+            and relative_change <= self.low_threshold
         ):
             step_reward = price_diff
         elif (
-            action == Actions.no_movement and abs(relative_change) < 0.1
+            action == Actions.no_movement and (
+                relative_change > self.low_threshold
+                and relative_change < self.up_threshold
+            )
         ):
             step_reward = price_diff
 
