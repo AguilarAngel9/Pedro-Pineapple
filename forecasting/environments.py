@@ -2,7 +2,7 @@
 # Authors: @THEFFTKID, @camila-cusi.
 
 from enum import Enum
-from typing import Union, Tuple, Dict, Any, Literal
+from typing import Union, Tuple, Dict, Any, Literal, List
 
 import matplotlib.pyplot as plt
 import gymnasium as gym
@@ -10,6 +10,7 @@ from dynamic_threshold import define_threshold
 import features as ft
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 
 class Actions(Enum):
@@ -30,7 +31,8 @@ class Forecasting(gym.Env):
         self,
         df: pd.DataFrame,
         window_size: int,
-        features_list: list[Literal[
+        series_features: List[
+            Literal[
             'open',
             'high',
             'low',
@@ -40,10 +42,11 @@ class Forecasting(gym.Env):
             'momentum',
             'close',
             'nday_tendency_removal',
-            'williams_p_range'
+            'williams_p_range',
+            'stochastic_oscillator'
             ]],
-            low_threshold: float,
-            up_threshold: float
+            lower_threshold: float,
+            upper_threshold: float
     ) -> None:
         assert df.ndim == 2
 
@@ -52,8 +55,11 @@ class Forecasting(gym.Env):
         # Size of the horizon.
         self.window_size = window_size
 
+        # Mask of desired features.
+        self.series_features = series_features
+        # Min-max scaler
+        self.scaler = MinMaxScaler(feature_range=(-1, 1))
         # Features (phi).
-        self.features_list = features_list
         self.prices, self.signal_features = self._process_data()
         # Shape of the observation space
         self.shape = (window_size, self.signal_features.shape[1])
@@ -61,8 +67,8 @@ class Forecasting(gym.Env):
         # Calculate and rewrite None.
         self.up_threshold, self.low_threshold = define_threshold(
             df=df['perc_relative_diff'],
-            lower_bound= low_threshold,
-            upper_bound= up_threshold
+            lower_bound=lower_threshold,
+            upper_bound=upper_threshold
         )
 
         # Action space.
@@ -91,7 +97,6 @@ class Forecasting(gym.Env):
         self.history = None
         # Trajectory of actions.
         self.actions_history = None
-        
 
     def reset(
         self,
@@ -208,11 +213,11 @@ class Forecasting(gym.Env):
 
         for tick in window_ticks:
             if self.actions_history[tick] == Actions.up_movement.value:
-                up_ticks.append(tick)
+                up_ticks.append(tick + self._start_tick)
             elif self.actions_history[tick] == Actions.no_movement.value:
-                no_ticks.append(tick)
+                no_ticks.append(tick + self._start_tick)
             elif self.actions_history[tick] == Actions.down_movement.value:
-                down_ticks.append(tick)
+                down_ticks.append(tick + self._start_tick)
 
         plt.plot(
             up_ticks, self.prices[up_ticks], 'g^'
@@ -267,12 +272,24 @@ class Forecasting(gym.Env):
         )
         # Volume rate of change
         data['volume_roc'] = ft.volume_perc_rate_of_change(
-            df_volume = data['volume']
+            df_volume=data['volume']
         )
         # Williams R%
-        data['williams_p_range'] = ft.williams_range(data=data)
+        data['williams_p_range'], data['n_highest_high'], data['n_lowest_low'] = ft.williams_range(
+            high=data['high'],
+            low=data['low'],
+            close=data['close']
+        )
 
-        features = data[self.features_list].to_numpy()
+        #Stochastic oscillator
+        data['stochastic_oscillator'] = ft.stochastic_oscillator(
+            close=data['close'],
+            n_lowest_low=data['n_lowest_low'],
+            n_highest_high=data['n_highest_high']
+        )
+
+        # Select a subset of features.
+        features = data[self.series_features].to_numpy()
 
         prices = data['close'].to_numpy()
 
@@ -281,6 +298,10 @@ class Forecasting(gym.Env):
         signal_features = np.concatenate(
             (features, diff.reshape(-1, 1)), axis=1
         )
+
+        # prices = self.scaler.fit_transform(prices.reshape(-1, 1))
+
+        # signal_features = self.scaler.fit_transform(signal_features)
 
         return prices, signal_features
 

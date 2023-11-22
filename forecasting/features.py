@@ -59,6 +59,7 @@ def tendency_removal(
     eliminate_tendency.iloc[:n] = 0
     return eliminate_tendency
 
+
 def volume_perc_rate_of_change(
         df_volume: pd.Series
 ) -> pd.Series:
@@ -67,6 +68,7 @@ def volume_perc_rate_of_change(
     '''
     v_proc = df_volume.pct_change().fillna(0) * 100
     return v_proc
+
 
 def williams_range(
         data: pd.DataFrame,
