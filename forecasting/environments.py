@@ -268,7 +268,8 @@ class Forecasting(gym.Env):
         data['volume_roc'] = ft.volume_perc_rate_of_change(
             df_volume = data['volume']
         )
-        # 
+        # Williams R%
+
 
         features = data[self.features_list].to_numpy()
 
