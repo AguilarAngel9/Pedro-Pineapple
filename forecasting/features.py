@@ -72,7 +72,7 @@ def williams_range(
         data: pd.DataFrame,
         days: int = 14,
 
-) -> pd.Series:
+):
     '''
     Calculate the Williams Percent Range, a momentum indicator that 
     measures underbought and oversold. 
@@ -89,3 +89,12 @@ def williams_range(
          williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100) #Highest_high == lowest_low
 
     return williams_prange, highest_high, lowest_low
+
+
+def stochastic_oscillator(
+        data:pd.DataFrame,
+        days:int = 14
+) -> pd.Series:
+    s_o = (data['close']-data['n_lowest_low'])/(data['n_highest_high']-data['n_lowest_low'])*100
+    s_o[:days] = 0 
+    return s_o
