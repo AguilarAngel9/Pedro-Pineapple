@@ -59,6 +59,7 @@ def tendency_removal(
     eliminate_tendency.iloc[:n] = 0
     return eliminate_tendency
 
+
 def volume_perc_rate_of_change(
         df_volume: pd.Series
 ) -> pd.Series:
