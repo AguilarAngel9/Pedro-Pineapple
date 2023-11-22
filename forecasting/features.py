@@ -71,7 +71,9 @@ def volume_perc_rate_of_change(
 
 
 def williams_range(
-        data: pd.DataFrame,
+        high: pd.Series,
+        close: pd.Series,
+        low: pd.Series,
         days: int = 14,
 
 ):
@@ -80,23 +82,25 @@ def williams_range(
     measures underbought and oversold. 
     '''
     
-    highest_high = data['high'].rolling(window=days).max().fillna(0)
-    lowest_low = data['low'].rolling(window=days).min().fillna(0)
+    highest_high = high.rolling(window=days).max().fillna(0)
+    lowest_low = low.rolling(window=days).min().fillna(0)
     is_equal = highest_high[days::] == lowest_low[days::]
     
-    williams_prange = (highest_high - data['close']) / (highest_high - lowest_low)*-100
+    williams_prange = (highest_high - close) / (highest_high - lowest_low)*-100
     williams_prange[:days] = 0
 
-    if is_equal.any() == True:
-         williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100) #Highest_high == lowest_low
+    if is_equal.any() == True: #Highest_high == lowest_low
+         williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100) 
 
     return williams_prange, highest_high, lowest_low
 
 
 def stochastic_oscillator(
-        data:pd.DataFrame,
+        close: pd.Series,
+        n_lowest_low: pd.Series,
+        n_highest_high: pd.Series,
         days:int = 14
 ) -> pd.Series:
-    s_o = (data['close']-data['n_lowest_low'])/(data['n_highest_high']-data['n_lowest_low'])*100
-    s_o[:days] = 0 
-    return s_o
+    stoch_osc = (close - n_lowest_low)/(n_highest_high - n_lowest_low) * 100
+    stoch_osc[:days] = 0 
+    return stoch_osc
