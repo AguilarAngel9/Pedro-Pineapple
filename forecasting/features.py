@@ -58,3 +58,9 @@ def tendency_removal(
     eliminate_tendency = df_close - n_moving_average
     eliminate_tendency.iloc[:n] = 0
     return eliminate_tendency
+
+def volume_perc_rate_of_change(
+        df_volume: pd.Series
+) -> pd.Series:
+    v_proc = df_volume.pct_change().fillna(0)
+    return v_proc
