@@ -34,7 +34,7 @@ class Forecasting(gym.Env):
             'open',
             'high',
             'low',
-            'volume',
+            'volume_roc',
             'n10_rolling_mean',
             'n10_weighted_rolling_mean',
             'momentum',
