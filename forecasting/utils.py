@@ -1,3 +1,5 @@
+# Util functions library.
+# Authors: @THEFFTKID.
 
 def flatten_dict(d, parent_key='', sep='_'):
     """

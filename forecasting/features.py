@@ -43,15 +43,18 @@ def momentum(
         )
     return pd.Series(m)
 
+
 def tendency_removal(
         df_close: pd.Series,
         n: int
-)-> pd.Series:
+) -> pd.Series:
     '''
-    Calculate the closing price minus the n day moving 
+    Calculate the closing price minus the n day moving
     average to remove the tendency.
     '''
-    n_moving_average = df_close.rolling(window = n).mean().fillna(0)
+    n_moving_average = df_close.rolling(
+        window=n
+    ).mean().fillna(0)
     eliminate_tendency = df_close - n_moving_average
     eliminate_tendency.iloc[:n] = 0
     return eliminate_tendency

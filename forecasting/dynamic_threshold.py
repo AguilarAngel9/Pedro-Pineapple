@@ -34,16 +34,19 @@ def define_threshold(
     thresholds, effectively identifying the range of values corresponding
     percentiles in the data's distribution
 
-    Parameters: 
+    Parameters:
 
-    - df (pd.Series): The data series to which the t-distribution is to be fitted.
-    - lower_bound (float): The lower percentile for calculating the lower threshold. 
+    - df (pd.Series):
+        The data series to which the t-distribution is to be fitted.
+    - lower_bound (float):
+        The lower percentile for calculating the lower threshold.
       Value should be between 0 and 1.
     - upper_bound (float):
       The upper percentile for calculating the upper threshold.
       Value should be between 0 and 1.
-    - override_plot (bool): If set to True, a plot of the t-distribution is generated.
-    
+    - override_plot (bool):
+        If set to True, a plot of the t-distribution is generated.
+
     Returns:
     - tuple: A tuple containing the calculated upper and lower thresholds.
     '''
@@ -52,13 +55,15 @@ def define_threshold(
 
     if override_plot:
         plot_tdist(dof, loc, scale, df)
-    
+
     if upper_bound >= lower_bound:
         upper_threshold = t.ppf(upper_bound, dof, loc, scale)
         lower_threshold = t.ppf(lower_bound, dof, loc, scale)
         if lower_threshold == upper_threshold or lower_threshold > 0:
             lower_threshold = -1 * lower_threshold
     else:
-        raise ValueError("Error: bounds are not consecutive. Modify extremities.")
+        raise ValueError(
+            "Error: bounds are not consecutive. Modify extremities."
+        )
 
     return upper_threshold, lower_threshold
