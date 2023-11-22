@@ -219,16 +219,19 @@ class Forecasting(gym.Env):
         # Standardize columns.
         data.columns = list(map(str.lower, data.columns))
 
-        # 10-day day rolling mean.
+        # 10-day rolling mean.
         data['n10_rolling_mean'] = ft.n_rolling_mean(
             x_=data['close'], n=10
         )
-        # 10-day day weighted  rolling mean.
+        # 10-day weighted  rolling mean.
         data['n10_weighted_rolling_mean'] = ft.n_rolling_mean(
             x_=data['close'], n=10
         )
         # Momentum.
         data['momentum'] = ft.momentum(x_=data['close'], n=10)
+
+        # Removal of tendency
+        data['nday_tendency_removal'] = ft.tendency_removal(df_close = data['close'], n = 10)
 
         features = data[
             [
@@ -239,6 +242,7 @@ class Forecasting(gym.Env):
                 'n10_weighted_rolling_mean',
                 'momentum',
                 'close'
+                'nday_tendency_removal'
             ]
         ].to_numpy()
 
