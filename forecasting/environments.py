@@ -34,6 +34,7 @@ class Forecasting(gym.Env):
             'open',
             'high',
             'low',
+            'volume',
             'n10_rolling_mean',
             'n10_weighted_rolling_mean',
             'momentum',
@@ -259,10 +260,15 @@ class Forecasting(gym.Env):
         # Momentum.
         data['momentum'] = ft.momentum(x_=data['close'], n=10)
 
-        # Removal of tendency
+        # Removal of tendency to closing price
         data['nday_tendency_removal'] = ft.tendency_removal(
             df_close=data['close'], n=10
         )
+        # Volume rate of change
+        data['volume_roc'] = ft.volume_perc_rate_of_change(
+            df_volume = data['volume']
+        )
+        # 
 
         features = data[self.features_list].to_numpy()
 
