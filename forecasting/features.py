@@ -64,7 +64,7 @@ def volume_perc_rate_of_change(
         df_volume: pd.Series
 ) -> pd.Series:
     '''
-    Calculate the relative rate of change for the volume. 
+    Calculate the relative rate of change for the volume.
     '''
     v_proc = df_volume.pct_change().fillna(0) * 100
     return v_proc
@@ -78,19 +78,18 @@ def williams_range(
 
 ):
     '''
-    Calculate the Williams Percent Range, a momentum indicator that 
-    measures underbought and oversold. 
+    Calculate the Williams Percent Range, a momentum indicator that
+    measures underbought and oversold.
     '''
-    
     highest_high = high.rolling(window=days).max().fillna(0)
     lowest_low = low.rolling(window=days).min().fillna(0)
     is_equal = highest_high[days::] == lowest_low[days::]
-    
+
     williams_prange = (highest_high - close) / (highest_high - lowest_low)*-100
     williams_prange[:days] = 0
 
-    if is_equal.any() == True: #Highest_high == lowest_low
-         williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100) 
+    if any(is_equal):
+        williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100)
 
     return williams_prange, highest_high, lowest_low
 
@@ -99,8 +98,8 @@ def stochastic_oscillator(
         close: pd.Series,
         n_lowest_low: pd.Series,
         n_highest_high: pd.Series,
-        days:int = 14
+        days: int = 14
 ) -> pd.Series:
     stoch_osc = (close - n_lowest_low)/(n_highest_high - n_lowest_low) * 100
-    stoch_osc[:days] = 0 
+    stoch_osc[:days] = 0
     return stoch_osc
