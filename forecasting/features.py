@@ -68,11 +68,7 @@ def volume_perc_rate_of_change(
     '''
     v_proc = df_volume.pct_change().fillna(0) * 100
     return v_proc
-    '''
-    Calculate the relative rate of change for the volume. 
-    '''
-    v_proc = df_volume.pct_change().fillna(0) * 100
-    return v_proc
+
 
 def williams_range(
         data: pd.DataFrame,
