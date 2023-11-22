@@ -31,7 +31,7 @@ class Forecasting(gym.Env):
         self,
         df: pd.DataFrame,
         window_size: int,
-        features_list: List[
+        series_features: List[
             Literal[
             'open',
             'high',
@@ -45,8 +45,8 @@ class Forecasting(gym.Env):
             'williams_p_range',
             'stochastic_oscillator'
             ]],
-            low_threshold: float,
-            up_threshold: float
+            lower_threshold: float,
+            upper_threshold: float
     ) -> None:
         assert df.ndim == 2
 
