@@ -12,3 +12,10 @@ ENV/
 env.bak/
 venv.bak/
 venvpp
+venvpp
+
+# Documents
+requirements_cami.txt
+
+# Directories.
+mlruns
