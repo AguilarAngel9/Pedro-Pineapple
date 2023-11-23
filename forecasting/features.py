@@ -73,11 +73,11 @@ def volume_perc_rate_of_change(
 
 
 def williams_range(
-        high: pd.Series,
-        close: pd.Series,
-        low: pd.Series,
-        days: int = 14,
-)-> Tuple[pd.Series, ...]:
+    high: pd.Series,
+    close: pd.Series,
+    low: pd.Series,
+    days: int = 14
+) -> Tuple[pd.Series, ...]:
     '''
     Calculate the Williams Percent Range, a momentum indicator that
     measures underbought and oversold.
@@ -90,16 +90,18 @@ def williams_range(
     williams_prange[:days] = 0
 
     if any(is_equal):
-        williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100)
+        williams_prange[days::] = williams_prange[days::].replace(
+            [np.inf, -np.inf], -100
+        )
 
     return williams_prange, highest_high, lowest_low
 
 
 def stochastic_oscillator(
-        close: pd.Series,
-        n_lowest_low: pd.Series,
-        n_highest_high: pd.Series,
-        days: int = 14
+    close: pd.Series,
+    n_lowest_low: pd.Series,
+    n_highest_high: pd.Series,
+    days: int = 14
 ) -> pd.Series:
     stoch_osc = (close - n_lowest_low)/(n_highest_high - n_lowest_low) * 100
     stoch_osc[:days] = 0
