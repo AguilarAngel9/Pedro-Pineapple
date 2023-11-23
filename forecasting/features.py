@@ -66,7 +66,6 @@ def volume_perc_rate_of_change(
 ) -> pd.Series:
     '''
     Calculate the relative rate of change for the volume.
-    Calculate the relative rate of change for the volume.
     '''
     v_proc = df_volume.pct_change().fillna(0) * 100
     return v_proc
