@@ -3,6 +3,7 @@
 
 import pandas as pd
 import numpy as np
+from typing import Tuple
 
 
 def n_rolling_mean(
@@ -65,47 +66,41 @@ def volume_perc_rate_of_change(
 ) -> pd.Series:
     '''
     Calculate the relative rate of change for the volume.
+    Calculate the relative rate of change for the volume.
     '''
     v_proc = df_volume.pct_change().fillna(0) * 100
     return v_proc
 
 
 def williams_range(
-    data: pd.DataFrame,
-    days: int = 14
-):
+        high: pd.Series,
+        close: pd.Series,
+        low: pd.Series,
+        days: int = 14,
+)-> Tuple[pd.Series, ...]:
     '''
     Calculate the Williams Percent Range, a momentum indicator that
     measures underbought and oversold.
     '''
-
-    highest_high = data['high'].rolling(window=days).max().fillna(0)
-    lowest_low = data['low'].rolling(window=days).min().fillna(0)
+    highest_high = high.rolling(window=days).max().fillna(0)
+    lowest_low = low.rolling(window=days).min().fillna(0)
     is_equal = highest_high[days::] == lowest_low[days::]
 
-    williams_prange = (
-        highest_high - data['close']
-    ) / (
-        highest_high - lowest_low
-    ) * -100
+    williams_prange = (highest_high - close) / (highest_high - lowest_low)*-100
     williams_prange[:days] = 0
 
-    if is_equal.any() == True:
-        williams_prange[days::] = williams_prange[days::].replace(
-             [np.inf, -np.inf], -100
-        )
+    if any(is_equal):
+        williams_prange[days::] = williams_prange[days::].replace([np.inf, -np.inf], -100)
 
     return williams_prange, highest_high, lowest_low
 
 
 def stochastic_oscillator(
-    data: pd.DataFrame,
-    days: int = 14
+        close: pd.Series,
+        n_lowest_low: pd.Series,
+        n_highest_high: pd.Series,
+        days: int = 14
 ) -> pd.Series:
-    s_o = (
-        data['close'] - data['n_lowest_low']
-    ) / (
-        data['n_highest_high'] - data['n_lowest_low']
-    ) * 100
-    s_o[:days] = 0
-    return s_o
+    stoch_osc = (close - n_lowest_low)/(n_highest_high - n_lowest_low) * 100
+    stoch_osc[:days] = 0
+    return stoch_osc

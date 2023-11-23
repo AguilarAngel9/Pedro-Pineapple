@@ -281,7 +281,7 @@ class Forecasting(gym.Env):
             close=data['close']
         )
 
-        #Stochastic oscillator
+        # Stochastic oscillator
         data['stochastic_oscillator'] = ft.stochastic_oscillator(
             close=data['close'],
             n_lowest_low=data['n_lowest_low'],
