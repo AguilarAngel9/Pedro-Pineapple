@@ -44,9 +44,10 @@ class Forecasting(gym.Env):
             'nday_tendency_removal',
             'williams_p_range',
             'stochastic_oscillator'
-            ]],
-            lower_threshold: float,
-            upper_threshold: float
+            ]
+        ],
+        lower_threshold: float,
+        upper_threshold: float
     ) -> None:
         assert df.ndim == 2
 
@@ -260,7 +261,7 @@ class Forecasting(gym.Env):
             x_=data['close'], n=10
         )
         # 10-day weighted  rolling mean.
-        data['n10_weighted_rolling_mean'] = ft.n_rolling_mean(
+        data['n10_weighted_rolling_mean'] = ft.weighted_n_moving_avg(
             x_=data['close'], n=10
         )
         # Momentum.
@@ -274,7 +275,7 @@ class Forecasting(gym.Env):
         data['volume_roc'] = ft.volume_perc_rate_of_change(
             df_volume=data['volume']
         )
-        # Williams R%
+        # Williams R%.
         data['williams_p_range'], data['n_highest_high'], data['n_lowest_low'] = ft.williams_range(
             high=data['high'],
             low=data['low'],
@@ -298,10 +299,6 @@ class Forecasting(gym.Env):
         signal_features = np.concatenate(
             (features, diff.reshape(-1, 1)), axis=1
         )
-
-        # prices = self.scaler.fit_transform(prices.reshape(-1, 1))
-
-        # signal_features = self.scaler.fit_transform(signal_features)
 
         return prices, signal_features
 
