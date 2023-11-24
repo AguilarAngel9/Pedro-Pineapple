@@ -2,15 +2,15 @@
 # Authors: @THEFFTKID, @camila-cusi.
 
 from enum import Enum
-from typing import Union, Tuple, Dict, Any, Literal, List
+from dynamic_threshold import define_threshold
+from sklearn.preprocessing import MinMaxScaler
+from typing import Union, Tuple, Literal, Dict, Any, List
 
 import matplotlib.pyplot as plt
 import gymnasium as gym
-from dynamic_threshold import define_threshold
 import features as ft
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 
 
 class Actions(Enum):
